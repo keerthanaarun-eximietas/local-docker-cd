@@ -22,8 +22,8 @@ jobs:
       - name: Remove existing container
         shell: cmd
         run: |
-          docker container inspect local-cd-demo >nul 2>&1
-          if %ERRORLEVEL% EQU 0 docker rm -f local-cd-demo
+          docker rm -f local-cd-demo 2>nul
+          exit /b 0
 
       - name: Deploy new container
         shell: cmd
