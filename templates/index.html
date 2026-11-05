@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101a2b">
+    <title>Local Docker CD | Pipeline walkthrough</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Local Docker CD home">
+        <span class="brand-mark" aria-hidden="true">CD</span>
+        <span>Local Docker <strong>CD</strong></span>
+      </a>
+      <a class="github-link" href="https://github.com/keerthanaarun-eximietas/local-docker-cd">
+        Repository <span aria-hidden="true">↗</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="pulse" aria-hidden="true"></span> YOUR DEPLOYMENT, STEP BY STEP</p>
+          <h1>From a push<br>to a <span>running app.</span></h1>
+          <p class="intro">
+            This page is served by Flask inside Docker. Follow the workflow below
+            to see what happens when code is pushed to <code>main</code>.
+          </p>
+          <a class="primary-link" href="#pipeline">Explore the pipeline <span aria-hidden="true">↓</span></a>
+        </div>
+
+        <aside class="runtime-card" aria-labelledby="runtime-title">
+          <div class="card-heading">
+            <div>
+              <p class="card-label">APPLICATION HEALTH</p>
+              <h2 id="runtime-title">Is the app responding?</h2>
+            </div>
+            <span class="status-dot checking" id="status-dot" aria-hidden="true"></span>
+          </div>
+          <p class="health-status" id="health-status" role="status" aria-live="polite">
+            Checking the Flask health endpoint…
+          </p>
+          <div class="runtime-details">
+            <div><span>Health endpoint</span><code>GET /health</code></div>
+            <div><span>Container port</span><code>5000</code></div>
+          </div>
+          <button class="check-button" id="check-health" type="button">Check again <span aria-hidden="true">↻</span></button>
+          <p class="health-note">This checks the app only. Workflow success is shown in GitHub Actions.</p>
+        </aside>
+      </section>
+
+      <section class="pipeline-section" id="pipeline">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE CURRENT WORKFLOW</p>
+            <h2>Five steps to deploy</h2>
+          </div>
+          <div class="trigger-chip"><span aria-hidden="true">↳</span> Trigger: push to <code>main</code></div>
+        </div>
+
+        <ol class="pipeline">
+          <li class="pipeline-step">
+            <span class="step-number">01</span>
+            <div class="step-content">
+              <div class="step-title"><h3>Check out the code</h3><span class="step-tag">GitHub Actions</span></div>
+              <p>The self-hosted runner gets the latest repository files.</p>
+              <code class="command">actions/checkout@v4</code>
+            </div>
+          </li>
+          <li class="pipeline-step">
+            <span class="step-number">02</span>
+            <div class="step-content">
+              <div class="step-title"><h3>Build the image</h3><span class="step-tag">Docker</span></div>
+              <p>Docker packages the Flask app and its dependencies into an image.</p>
+              <code class="command">docker build -t local-cd-demo:latest .</code>
+            </div>
+          </li>
+          <li class="pipeline-step">
+            <span class="step-number">03</span>
+            <div class="step-content">
+              <div class="step-title"><h3>Remove the old container</h3><span class="step-tag">Replace</span></div>
+              <p>The existing container is removed so the new version can use its name and port.</p>
+              <code class="command">docker rm -f local-cd-demo</code>
+            </div>
+          </li>
+          <li class="pipeline-step">
+            <span class="step-number">04</span>
+            <div class="step-content">
+              <div class="step-title"><h3>Start the new version</h3><span class="step-tag">Deploy</span></div>
+              <p>A container runs in the background. Host port 5000 forwards to port 5000 in the container.</p>
+              <code class="command">docker run -d --name local-cd-demo --restart unless-stopped -p 5000:5000 local-cd-demo:latest</code>
+            </div>
+          </li>
+          <li class="pipeline-step">
+            <span class="step-number">05</span>
+            <div class="step-content">
+              <div class="step-title"><h3>Verify the deployment</h3><span class="step-tag">Smoke test</span></div>
+              <p>After a short wait, the runner requests the app. A failed request makes the workflow fail.</p>
+              <code class="command">curl -f http://localhost:5000</code>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="scope-note" aria-labelledby="scope-title">
+        <span class="scope-icon" aria-hidden="true">i</span>
+        <div>
+          <h2 id="scope-title">What this pipeline does—and doesn’t do</h2>
+          <p>
+            It deploys to the machine running your self-hosted Actions runner.
+            It does not currently run a test suite, publish an image to a registry,
+            deploy to a cloud provider, or roll back automatically if the new
+            container fails. The Actions tab shows the result of each workflow run.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Local Docker CD</span>
+      <span>Flask <span aria-hidden="true">·</span> Docker <span aria-hidden="true">·</span> GitHub Actions</span>
+    </footer>
+  </body>
+</html>
