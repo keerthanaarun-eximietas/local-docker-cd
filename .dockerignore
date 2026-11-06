@@ -1,0 +1,17 @@
+
+.git/
+.github/
+actions-runner/
+
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+
+frontend/dist/
+frontend/.vite/
+
+.venv/
+venv/
+
+.env
+.env.*
