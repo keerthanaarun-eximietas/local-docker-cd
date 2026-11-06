@@ -1,8 +1,16 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+
+  // Production build protection
+  build: {
+    sourcemap: false,
+  },
+
+  // Development server configuration
   server: {
     proxy: {
       "/health": {

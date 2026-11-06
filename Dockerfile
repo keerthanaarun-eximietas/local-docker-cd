@@ -13,20 +13,42 @@ COPY frontend/ ./
 RUN npm run build
 
 
-# Stage 2: Prepare the Flask application
-FROM python:3.12-slim AS backend
+# Stage 2: Compile the Flask application using Nuitka
+FROM python:3.12-slim AS backend-build
 
 WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    patchelf \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir nuitka
 
 COPY app.py .
 
-# Copy the production React build from Stage 1
+# Compile Flask into a Linux standalone executable
+RUN python -m nuitka \
+    --mode=standalone \
+    --output-dir=/compiled \
+    app.py
+
+
+# Stage 3: Create the final runtime image
+FROM python:3.12-slim AS runtime
+
+WORKDIR /app
+
+# Copy the compiled application
+COPY --from=backend-build /compiled/app.dist/ ./
+
+# Copy the React production build
 COPY --from=frontend-build /frontend/dist ./frontend/dist
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["./app.bin"]
